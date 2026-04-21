@@ -1,0 +1,39 @@
+{
+  "version": "4",
+  "groupKey": "{}:{alertname=\"HighErrorRate\"}",
+  "status": "firing",
+  "receiver": "pagerduty",
+  "groupLabels": {
+    "alertname": "HighErrorRate"
+  },
+  "commonLabels": {
+    "alertname": "HighErrorRate",
+    "env": "production",
+    "job": "api-server",
+    "severity": "critical"
+  },
+  "commonAnnotations": {
+    "description": "API server error rate is 12.4% over the last 5 minutes (threshold: 5%)",
+    "runbook_url": "https://wiki.internal/runbooks/high-error-rate",
+    "summary": "High error rate on api-server in production"
+  },
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "HighErrorRate",
+        "env": "production",
+        "instance": "api-server-3:8080",
+        "job": "api-server",
+        "severity": "critical"
+      },
+      "annotations": {
+        "description": "api-server-3 error rate is 12.4% (threshold: 5%)",
+        "summary": "High error rate on api-server-3"
+      },
+      "startsAt": "2026-04-20T14:22:00Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://prometheus:9090/graph?g0.expr=rate%28http_requests_total%7Bstatus%3D~%225..%22%7D%5B5m%5D%29+%2F+rate%28http_requests_total%5B5m%5D%29+%3E+0.05"
+    }
+  ]
+}

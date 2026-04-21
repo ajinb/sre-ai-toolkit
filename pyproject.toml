@@ -1,0 +1,22 @@
+[project]
+name = "sre-ai-toolkit"
+version = "0.1.0"
+description = "Curated AI-assisted scripts for SRE teams"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.50.0",
+]
+
+[project.urls]
+Homepage = "https://cloudandsre.com"
+Repository = "https://github.com/ajinb/sre-ai-toolkit"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

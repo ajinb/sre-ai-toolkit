@@ -1,0 +1,25 @@
+2026-04-20T14:20:01Z INFO  report-job started: full_report_export job_id=rpt-8821
+2026-04-20T14:20:03Z INFO  api-server-3 GET /api/v2/users 200 45ms
+2026-04-20T14:20:04Z INFO  api-server-3 GET /api/v2/flights 200 38ms
+2026-04-20T14:20:12Z WARN  postgres-primary slow query detected: SELECT * FROM events WHERE... (2341ms) job_id=rpt-8821
+2026-04-20T14:20:15Z INFO  api-server-3 GET /api/v2/users 200 52ms
+2026-04-20T14:21:00Z WARN  postgres-primary connection pool utilization: 87%
+2026-04-20T14:21:15Z WARN  postgres-primary slow query detected: SELECT * FROM events WHERE... (5102ms) job_id=rpt-8821
+2026-04-20T14:21:30Z ERROR api-server-3 GET /api/v2/flights 503 connection timeout to postgres-primary
+2026-04-20T14:21:31Z ERROR api-server-3 GET /api/v2/users 503 connection timeout to postgres-primary
+2026-04-20T14:21:32Z ERROR api-server-1 GET /api/v2/bookings 503 connection timeout to postgres-primary
+2026-04-20T14:21:33Z ERROR api-server-3 GET /api/v2/flights 503 connection timeout to postgres-primary
+2026-04-20T14:21:34Z ERROR api-server-1 GET /api/v2/users 503 connection timeout to postgres-primary
+2026-04-20T14:21:35Z WARN  postgres-primary connection pool utilization: 100% — rejecting new connections
+2026-04-20T14:21:35Z ERROR api-server-2 GET /api/v2/reports 503 connection timeout to postgres-primary
+2026-04-20T14:21:36Z ERROR api-server-3 GET /api/v2/flights 503 connection timeout to postgres-primary
+2026-04-20T14:21:40Z ERROR api-server-1 POST /api/v2/bookings 503 connection timeout to postgres-primary
+2026-04-20T14:22:00Z CRITICAL alertmanager HighErrorRate FIRING: api-server error rate 12.4%
+2026-04-20T14:22:01Z ERROR api-server-2 GET /api/v2/users 503 connection timeout to postgres-primary
+2026-04-20T14:29:05Z INFO  report-job SIGTERM received, shutting down job_id=rpt-8821
+2026-04-20T14:29:07Z INFO  postgres-primary query killed job_id=rpt-8821
+2026-04-20T14:29:10Z INFO  postgres-primary connection pool utilization: 52%
+2026-04-20T14:29:30Z INFO  api-server-3 GET /api/v2/flights 200 41ms
+2026-04-20T14:29:31Z INFO  api-server-1 GET /api/v2/users 200 38ms
+2026-04-20T14:30:00Z INFO  postgres-primary connection pool utilization: 28%
+2026-04-20T14:31:00Z INFO  alertmanager HighErrorRate RESOLVED

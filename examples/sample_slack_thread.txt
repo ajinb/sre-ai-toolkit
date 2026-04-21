@@ -1,0 +1,37 @@
+--- #incidents channel ---
+
+[14:22] pagerduty-bot: 🔴 ALERT FIRING: HighErrorRate on api-server-3 (prod) — 12.4% error rate
+
+[14:23] sarah: looking
+
+[14:24] sarah: api-server-3 is throwing 503s — checking logs
+
+[14:26] marcus: same on api-server-1, seeing connection timeouts to postgres-primary
+
+[14:27] sarah: postgres-primary CPU at 98% — looks like a slow query is holding connections
+
+[14:28] marcus: found it — report generation job kicked off at 14:20, running a full table scan on events table (200M rows)
+
+[14:29] sarah: killing the report job now
+
+[14:30] sarah: postgres CPU dropping, 45% now
+
+[14:31] pagerduty-bot: ✅ RESOLVED: HighErrorRate on api-server-3
+
+[14:32] marcus: api-server-1 also recovered
+
+[14:33] sarah: all good. error rate back to 0.2%
+
+[14:35] tom (manager): user impact?
+
+[14:36] marcus: 8 minutes of elevated errors, ~3,400 requests failed (out of ~28,000). No data loss.
+
+[14:38] sarah: we need to either schedule that report job during off-hours or add query timeout + index on events.created_at
+
+[14:39] marcus: agreed. I'll create a ticket for the index + move the job to 3am UTC
+
+[14:40] sarah: also should we add a circuit breaker on the report endpoint so it doesn't take down the whole api?
+
+[14:41] tom: yes, please add both to the ticket
+
+[14:42] marcus: done — JIRA-4821
