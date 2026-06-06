@@ -14,12 +14,13 @@ Usage:
 """
 
 import argparse
+import os
 import sys
 from collections import Counter
 
 import anthropic
 
-MODEL = "claude-opus-4-6"
+MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
 DEFAULT_LINES = 150
 
 SYSTEM_PROMPT = """You are an expert SRE log analyst.
@@ -49,11 +50,11 @@ def load_logs(args: argparse.Namespace) -> list[str]:
         with open(args.log) as f:
             lines = f.readlines()
 
-    lines = [l.rstrip("\n") for l in lines if l.strip()]
+    lines = [line.rstrip("\n") for line in lines if line.strip()]
 
     if args.severity:
         keywords = [s.strip().upper() for s in args.severity.split(",")]
-        lines = [l for l in lines if any(k in l.upper() for k in keywords)]
+        lines = [line for line in lines if any(k in line.upper() for k in keywords)]
 
     return lines[-args.lines :]  # tail the requested number of lines
 

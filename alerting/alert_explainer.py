@@ -12,12 +12,13 @@ Output: plain-English explanation + triage checklist written to stdout.
 
 import argparse
 import json
+import os
 import sys
 from typing import Any
 
 import anthropic
 
-MODEL = "claude-opus-4-6"
+MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
 
 SYSTEM_PROMPT = """You are an expert SRE on-call assistant.
 When given a Prometheus alert payload, you:
