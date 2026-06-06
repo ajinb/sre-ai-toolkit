@@ -14,12 +14,14 @@ Usage:
 
 import argparse
 import json
+import os
+import re
 import sys
 from enum import Enum
 
 import anthropic
 
-MODEL = "claude-opus-4-6"
+MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
 
 
 class OutputFormat(str, Enum):
@@ -69,6 +71,23 @@ def load_thread(args: argparse.Namespace) -> str:
         return f.read()
 
 
+def extract_json_block(content: str) -> str:
+    """Return pretty-printed JSON from model output.
+
+    Accepts either a bare JSON object or JSON wrapped in a ```json fenced code
+    block (Claude sometimes wraps it). Raises ``json.JSONDecodeError`` if no
+    valid JSON can be recovered.
+    """
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", content)
+        if not match:
+            raise
+        parsed = json.loads(match.group(1))
+    return json.dumps(parsed, indent=2)
+
+
 def generate_report(thread: str, fmt: OutputFormat) -> str:
     client = anthropic.Anthropic()
 
@@ -88,17 +107,7 @@ def generate_report(thread: str, fmt: OutputFormat) -> str:
     content = message.content[0].text
 
     if fmt == OutputFormat.JSON:
-        # Validate it's parseable JSON before returning
-        try:
-            parsed = json.loads(content)
-            return json.dumps(parsed, indent=2)
-        except json.JSONDecodeError:
-            # Claude sometimes wraps JSON in a code block
-            import re
-            match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", content)
-            if match:
-                return json.dumps(json.loads(match.group(1)), indent=2)
-            raise
+        return extract_json_block(content)
 
     return content
 

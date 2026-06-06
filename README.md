@@ -1,5 +1,9 @@
 # sre-ai-toolkit
 
+[![CI](https://github.com/ajinb/sre-ai-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/ajinb/sre-ai-toolkit/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Curated AI-assisted scripts for SRE teams — alerting, incident response, and observability.
 
 > Blog post: [cloudandsre.com](https://cloudandsre.com) · Built by [Ajin Baby](https://github.com/ajinb)
@@ -109,6 +113,36 @@ Each script implements specific [Azure WAF](https://learn.microsoft.com/en-us/az
 - `ANTHROPIC_API_KEY` environment variable
 
 No other dependencies. Each script is self-contained.
+
+---
+
+## Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | _(required)_ | Your Anthropic API key |
+| `ANTHROPIC_MODEL` | `claude-opus-4-8` | Override the model — e.g. `claude-sonnet-4-6` for a cheaper/faster run |
+
+```bash
+# Run any script against a cheaper model
+ANTHROPIC_MODEL=claude-sonnet-4-6 python alerting/alert_explainer.py --alert examples/sample_alert.json
+```
+
+---
+
+## Development
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+
+ruff check .   # lint
+pytest -q      # tests (pure logic — no API key or network needed)
+```
+
+The test suite covers the pure logic in each script (log filtering, alert
+formatting, JSON extraction) and runs offline — no API calls. CI runs the same
+`ruff` + `pytest` on Python 3.11, 3.12, and 3.13.
 
 ---
 
