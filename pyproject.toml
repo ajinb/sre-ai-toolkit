@@ -9,6 +9,12 @@ dependencies = [
     "anthropic>=0.50.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
 [project.urls]
 Homepage = "https://cloudandsre.com"
 Repository = "https://github.com/ajinb/sre-ai-toolkit"
@@ -16,6 +22,14 @@ Repository = "https://github.com/ajinb/sre-ai-toolkit"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Scripts live in category folders and are run directly, not imported as a
+# package. Tell hatchling not to infer a package from the project name.
+bypass-selection = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
