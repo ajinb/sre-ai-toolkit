@@ -1,0 +1,17 @@
+{
+  "kind": "List",
+  "items": [
+    {"type": "Warning", "reason": "BackOff", "count": 42, "lastTimestamp": "2026-11-02T10:05:00Z",
+     "message": "Back-off restarting failed container api in pod api-7d9f-x2",
+     "metadata": {"namespace": "payments"}, "involvedObject": {"kind": "Pod", "name": "api-7d9f-x2"}},
+    {"type": "Warning", "reason": "Unhealthy", "count": 17, "lastTimestamp": "2026-11-02T10:04:30Z",
+     "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+     "metadata": {"namespace": "payments"}, "involvedObject": {"kind": "Pod", "name": "api-7d9f-x2"}},
+    {"type": "Warning", "reason": "FailedScheduling", "count": 5, "lastTimestamp": "2026-11-02T09:58:00Z",
+     "message": "0/6 nodes are available: 6 Insufficient memory.",
+     "metadata": {"namespace": "batch"}, "involvedObject": {"kind": "Pod", "name": "report-job-abc"}},
+    {"type": "Normal", "reason": "Pulled", "count": 3, "lastTimestamp": "2026-11-02T10:00:00Z",
+     "message": "Container image pulled", "metadata": {"namespace": "payments"},
+     "involvedObject": {"kind": "Pod", "name": "api-7d9f-x2"}}
+  ]
+}
