@@ -8,17 +8,20 @@ Curated AI-assisted scripts for SRE teams — alerting, incident response, and o
 
 > Blog post: [cloudandsre.com](https://cloudandsre.com) · Built by [Ajin Baby](https://github.com/ajinb)
 
-Each script is standalone, runnable in under 5 minutes, and solves a specific on-call problem using Claude.
+Each tool is a single command that solves one specific on-call problem using Claude, runnable in
+under 5 minutes. They share one set of model controls and report what every run cost.
 
 ---
 
 ## Scripts
 
-| Category | Script | What It Does |
+| Category | Command | What it does |
 |---|---|---|
-| alerting | [alert_explainer.py](alerting/alert_explainer.py) | Prometheus alert JSON → plain-English explanation + triage checklist |
-| incident-response | [slack_to_incident.py](incident-response/slack_to_incident.py) | Slack thread → structured incident report (markdown or JSON) |
-| observability | [log_anomaly_detector.py](observability/log_anomaly_detector.py) | Log file → anomaly clusters + lines needing immediate attention |
+| alerting | `sre-alert-explain` ([source](src/sre_ai_toolkit/alert_explainer.py)) | Prometheus alert JSON → plain-English explanation + triage checklist |
+| incident-response | `sre-slack-to-incident` ([source](src/sre_ai_toolkit/slack_to_incident.py)) | Slack thread → structured incident report (markdown, or schema-constrained JSON) |
+| observability | `sre-log-anomaly` ([source](src/sre_ai_toolkit/log_anomaly_detector.py)) | Log file → anomaly clusters + lines needing immediate attention |
+| infrastructure | `sre-tf-plan-summary` ([source](src/sre_ai_toolkit/tf_plan_summary.py)) | `terraform show -json` → reviewer brief with a deterministic risk floor and a `--fail-on` CI gate. Attribute values never leave the machine |
+| kubernetes | `sre-k8s-event-triage` ([source](src/sre_ai_toolkit/k8s_event_triage.py)) | `kubectl get events -o json` → Warning events grouped by object and reason, ranked, then triaged |
 
 ---
 
@@ -27,11 +30,12 @@ Each script is standalone, runnable in under 5 minutes, and solves a specific on
 **Requirements:** Python 3.11+ · Anthropic API key
 
 ```bash
-git clone https://github.com/ajinb/sre-ai-toolkit
-cd sre-ai-toolkit
-pip install anthropic
+pip install "git+https://github.com/ajinb/sre-ai-toolkit@main"   # PyPI release pending
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+Working from a clone instead? `python alerting/alert_explainer.py …` and the other paths still
+run without installing.
 
 ### Explain a Prometheus alert
 
@@ -94,39 +98,59 @@ All processing happens via the Anthropic API. Your logs and alerts are sent to A
 
 ---
 
-## Reliability Patterns Implemented
+## Shared controls
 
-Each script implements specific [Azure WAF](https://learn.microsoft.com/en-us/azure/well-architected/) and [AWS Well-Architected](https://aws.amazon.com/architecture/well-architected/) reliability patterns:
+Every command takes the same model flags and prints a one-line usage summary to stderr when it
+finishes:
 
-| Script | Patterns |
-|---|---|
-| alert_explainer | Circuit Breaker (LLM fallback), Priority Queue (P1 before P3) |
-| slack_to_incident | Event Sourcing (audit trail), Compensating Transaction awareness |
-| log_anomaly_detector | Health Endpoint Monitoring, Anomaly Detection |
+| Flag | Env var | Default | Purpose |
+|---|---|---|---|
+| `--model` | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Any Claude model, e.g. `claude-sonnet-5-5` for cheaper/faster runs |
+| `--effort` | `SRE_AI_EFFORT` | `medium` | Thinking depth: `low` … `max` |
+| `--max-tokens` | `SRE_AI_MAX_TOKENS` | `16000` | Output cap per call (thinking included) |
+| `--timeout` | `SRE_AI_TIMEOUT` | `120` | Request timeout, seconds |
+| `--dry-run` | — | off | Print the exact request and exit — no API call, no cost |
+| `--no-usage` | — | off | Suppress the `[usage] … in, … out · est. $…` line |
+
+```text
+[usage] claude-opus-5-5: 2,184 in, 611 out · est. $0.0210
+```
+
+The estimate uses [`cloudandsre.cost`](https://github.com/ajinb/cloudandsre-python) when it is
+installed, and a built-in table of current models otherwise.
+
+Behaviour common to every command:
+
+- **Refusals are surfaced, not printed as output.** On models that support it, a declined request
+  is re-run server-side on Anthropic's recommended fallback (`fallbacks: "default"`); a refusal
+  that survives exits with code 4.
+- **Truncation is an error.** A reply cut off at `--max-tokens` exits 4 instead of printing half a report.
+- **JSON output is schema-constrained** by the API (structured outputs), not parsed out of prose.
+- Exit codes: `0` ok · `1` bad input · `3` risk gate tripped (`sre-tf-plan-summary --fail-on`) · `4` model/API failure.
+
+### Terraform plan review in CI
+
+```yaml
+- run: terraform plan -out plan.out && terraform show -json plan.out > plan.json
+- run: sre-tf-plan-summary --plan plan.json --fail-on critical >> "$GITHUB_STEP_SUMMARY"
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+The risk floor comes from the plan itself: replacing or deleting a stateful resource (databases,
+buckets, volumes, keys) is `critical`; any destroy or security-boundary change (IAM, security
+groups, firewall rules, policies) is at least `high`. The model can raise the risk, never lower it.
+
+All processing happens via the Anthropic API. Inputs are sent to Anthropic's servers — review
+their [privacy policy](https://www.anthropic.com/privacy) before using with sensitive production data.
 
 ---
 
 ## Requirements
 
 - Python 3.11+
-- `anthropic` Python SDK (`pip install anthropic`)
+- `anthropic` Python SDK 2.x (installed automatically)
 - `ANTHROPIC_API_KEY` environment variable
-
-No other dependencies. Each script is self-contained.
-
----
-
-## Configuration
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | _(required)_ | Your Anthropic API key |
-| `ANTHROPIC_MODEL` | `claude-opus-4-8` | Override the model — e.g. `claude-sonnet-4-6` for a cheaper/faster run |
-
-```bash
-# Run any script against a cheaper model
-ANTHROPIC_MODEL=claude-sonnet-4-6 python alerting/alert_explainer.py --alert examples/sample_alert.json
-```
 
 ---
 
@@ -140,9 +164,9 @@ ruff check .   # lint
 pytest -q      # tests (pure logic — no API key or network needed)
 ```
 
-The test suite covers the pure logic in each script (log filtering, alert
-formatting, JSON extraction) and runs offline — no API calls. CI runs the same
-`ruff` + `pytest` on Python 3.11, 3.12, and 3.13.
+The suite runs offline. Pure logic (log filtering, plan condensation, event grouping, JSON
+extraction) is tested directly; the shared Claude call is exercised through the real Anthropic SDK
+against a mock transport, so an SDK signature change fails CI rather than a user's first run.
 
 ---
 

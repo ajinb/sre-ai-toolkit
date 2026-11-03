@@ -1,32 +1,50 @@
 [project]
 name = "sre-ai-toolkit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Curated AI-assisted scripts for SRE teams"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
-dependencies = [
-    "anthropic>=0.50.0",
+keywords = ["sre", "llm", "claude", "prometheus", "terraform", "kubernetes", "incident-response"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Monitoring",
 ]
+dependencies = [
+    "anthropic>=2.4,<3",
+]
+
+[project.scripts]
+sre-alert-explain = "sre_ai_toolkit.alert_explainer:cli"
+sre-slack-to-incident = "sre_ai_toolkit.slack_to_incident:cli"
+sre-log-anomaly = "sre_ai_toolkit.log_anomaly_detector:cli"
+sre-tf-plan-summary = "sre_ai_toolkit.tf_plan_summary:cli"
+sre-k8s-event-triage = "sre_ai_toolkit.k8s_event_triage:cli"
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
-    "ruff>=0.16,<0.17",
+    "ruff>=0.16,<0.18",
 ]
 
 [project.urls]
 Homepage = "https://cloudandsre.com"
 Repository = "https://github.com/ajinb/sre-ai-toolkit"
+Issues = "https://github.com/ajinb/sre-ai-toolkit/issues"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-# Scripts live in category folders and are run directly, not imported as a
-# package. Tell hatchling not to infer a package from the project name.
-bypass-selection = true
+packages = ["src/sre_ai_toolkit"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
